@@ -8,7 +8,7 @@ if(grepl('ip-', platform)){
   data_path <- 'data/'
 }
 library(knitr)
-
+library(data.table)
 setwd(my_directory)
 # convert the up-to-date R markdown to R script
 purl('Dominicks_Experiment_Detection.Rmd', 
@@ -38,12 +38,14 @@ CL <- makeCluster(length(category_names))
 clusterExport(CL, 'my_directory')
 for(i in 1:length(category_names)){
   cur_category = category_names[[i]]
-  clusterExport(CL, 'cur_category')
+  clusterExport(CL[i], 'cur_category')
 }
 clusterEvalQ(CL, {
   setwd(my_directory) 
   source('Dominicks_Experiment_Detection.R')
   setwd(my_directory) 
+  cur_folder <- paste0('out/time_window/', cur_category, '/')
+  MakeDir(cur_folder)
   for(s in store_list){
     PlotStoreFormattedPrice(out$formatted_dt, out$store_week_prediction, s, 
                             plot_path = paste0('out/time_window/', cur_category, '/')

@@ -1,10 +1,10 @@
----
-title: "R Notebook"
-output: html_notebook
----
-
-# Path and Library Setting 
-```{r, warning=FALSE, message=FALSE}
+#' ---
+#' title: "R Notebook"
+#' output: html_notebook
+#' ---
+#' 
+#' # Path and Library Setting 
+## ---- warning=FALSE, message=FALSE---------------------------------------
 require(CommonFunctions)
 require(Hmisc)
 require(lfe)
@@ -15,30 +15,37 @@ require(mixtools)
 require(scales)
 require(stargazer)
 platform <- Sys.info()['nodename']
+if(grepl('ip-', platform)){
+  setwd('~/ExperimentDetection')
+  data_path <- '~/data'
+} else {
+  setwd('~/Workspace-George/ExperimentDetection_Cleaned/')
+  data_path <- 'data/'
+}
 
 file_list <- c('R/Cleaning.R',
                'R/Elasticity_Function.R',
                'R/Main_Functions.R')
 invisible(lapply(file_list, source))
 rm(file_list)
-```
 
-## Category Experiment File
-```{r}
+#' 
+#' ## Category Experiment File
+## ------------------------------------------------------------------------
 load('data/processed_info.RData')
 head(price_expr)
-```
 
-## Relevant Experiment with Documented Time
-
-```{r}
+#' 
+#' ## Relevant Experiment with Documented Time
+#' 
+## ------------------------------------------------------------------------
 relevant_cols <- c('store', 'zone', grep('test$', names(price_expr), value = TRUE))
 head(price_expr[, relevant_cols, with = FALSE])
-```
 
-# Global Variables
-The following variables will be global variables that used through out the code and inside various functions implicitly
-```{r}
+#' 
+#' # Global Variables
+#' The following variables will be global variables that used through out the code and inside various functions implicitly
+## ------------------------------------------------------------------------
 PRICE_EXPR <- price_expr[zone == 2] # select the largest zones of 27 stores
 WEEK_TABLE <- week_table #
 
@@ -48,19 +55,19 @@ names(color_list) <- c('EDLP', 'Hi-Lo', 'Control', 'EDLP/S', 'EDLP2', 'Hi-Lo1', 
 COLOR_LIST <- color_list
 GG_COLOR <- scale_color_manual(values = COLOR_LIST)
 rm(list = c('price_expr', 'week_table', 'color_list'))
-```
 
-
-# Category Information
-```{r}
+#' 
+#' 
+#' # Category Information
+## ------------------------------------------------------------------------
 category_dt <- rbindlist(category_list)
 category_dt[, c('Category', 'exp_2_start', 'exp_2_end'), with = FALSE]
-```
 
-# Nonparametric Mixture Estimation
-
-## Define function
-```{r}
+#' 
+#' # Nonparametric Mixture Estimation
+#' 
+#' ## Define function
+## ------------------------------------------------------------------------
 PlotOriginalPrice <- function(dt, price_col = 'price'){
   dt_avg <- dt[, .(
     price = mean(get(price_col))
@@ -158,26 +165,26 @@ GetNpMix <- function(
   )
 }
 
-```
 
-
-## List of Well-Documented Category
-```{r}
+#' 
+#' 
+#' ## List of Well-Documented Category
+## ------------------------------------------------------------------------
 category_dt <- category_dt[!is.na(exp_2_start)]
 category_dt[, .(Category)]
     
-```
 
-## Select a categry and load the movement data
-```{r}
+#' 
+#' ## Select a categry and load the movement data
+## ------------------------------------------------------------------------
 if(!exists('cur_category')) cur_category = 'Analgesics'
 category_info <- category_dt[Category == cur_category]
 dt <- BasicCleaning(category_info)
-```
 
-##  Run the Estimation
-
-```{r}
+#' 
+#' ##  Run the Estimation
+#' 
+## ------------------------------------------------------------------------
 out <- GetNpMix(
   category_info, 
   dt                    = dt, 
@@ -186,29 +193,29 @@ out <- GetNpMix(
   time_range_start      = "1992-01-01", # 
   time_range_end        = "1993-12-31"
   )
-```
-## Original category level price by documented store label
-```{r}
+
+#' ## Original category level price by documented store label
+## ------------------------------------------------------------------------
 PlotOriginalPrice(out$formatted_dt)
-```
 
-## Availabel stores
-
-```{r}
+#' 
+#' ## Availabel stores
+#' 
+## ------------------------------------------------------------------------
 store_list <- dt[, unique(store)]
 store_list
-```
 
-## Pick a store and plot its prediction price
-
-```{r}
+#' 
+#' ## Pick a store and plot its prediction price
+#' 
+## ------------------------------------------------------------------------
 PlotStoreFormattedPrice(out$formatted_dt, out$store_week_prediction, 5)
-```
 
-## Estimate Elasticity
-
-### Use all the data
-```{r}
+#' 
+#' ## Estimate Elasticity
+#' 
+#' ### Use all the data
+## ------------------------------------------------------------------------
 estimation_data <- merge(
   out$formatted_dt, 
   out$store_week_prediction[, .(store, week_start, pred_label)], 
@@ -224,11 +231,11 @@ model_all_fe <- felm(log(move + 1) ~ log(price)|week_start + upc, estimation_dat
 # the interaction using felm and manual demeaning
 model_all_fe_inter <- felm(log(move + 1) ~ log(price)|week_start * upc, estimation_data)
 model_all_fe_inter2 <- felm(demeaned_move ~ formatted_price, estimation_data)
-```
 
-### Use experiment data
-
-```{r}
+#' 
+#' ### Use experiment data
+#' 
+## ------------------------------------------------------------------------
 model_expr <- felm(log(move + 1) ~ log(price), estimation_data[pred_label != 'Control'])
 # use the experiment data to demean 
 model_expr_fe <- felm(log(move + 1) ~ log(price)|week_start + upc, 
@@ -241,11 +248,11 @@ model_expr_fe_inter2 <- felm(
   demeaned_move ~ formatted_price, 
   estimation_data[pred_label != 'Control'])
 
-```
 
-# Which elasticties to report?
-
-```{r}
+#' 
+#' # Which elasticties to report?
+#' 
+## ------------------------------------------------------------------------
 comparison_table <- stargazer(
   model_all, model_all_fe, model_all_fe_inter, model_expr_fe_inter, model_expr_fe_inter2, 
   add.lines = list(
@@ -255,5 +262,5 @@ comparison_table <- stargazer(
     c('FE before Filteirng', rep('', 3), 'No', 'Yes')),
   type = 'text', omit.stat=c("f", "ser"))
 
-```
 
+#' 
