@@ -1,0 +1,1 @@
+notedown Dominicks_Experiment_Detection.Rmd --knit --rmagic > Dominicks_Experiment_Detection.ipynb

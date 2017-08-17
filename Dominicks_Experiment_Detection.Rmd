@@ -5,15 +5,20 @@ output: html_notebook
 
 # Path and Library Setting 
 ```{r, warning=FALSE, message=FALSE}
-require(CommonFunctions)
-require(Hmisc)
-require(lfe)
-require(ggplot2)
-require(gridExtra)
-require(data.table)
-require(mixtools)
-require(scales)
-require(stargazer)
+library(CommonFunctions) #https://github.com/georgegui/CommonFunctions_Public
+
+package_list <- c('mixtools', 'gridExtra', 'lfe', 'matrixStats', 
+                  'RcppArmadillo', 'Hmisc', 'lfe', 'gridExtra', 
+                  'data.table', 'mixtools', 'scales', 'stargazer')
+
+#matrixStats installed from source
+for(cur_package in package_list){
+  if(!require(cur_package, character.only = TRUE)){
+    install.packages(cur_package, repos='http://cran.rstudio.com/')
+    require(cur_package, character.only = TRUE)
+  }
+}
+
 platform <- Sys.info()['nodename']
 
 file_list <- c('R/Cleaning.R',
@@ -109,9 +114,6 @@ GetNpMix <- function(
     dt <- copy(dt)
   }
   dt[, week := paste0('t', week)] # rename numeric week columns to charcter for dcasting
-  unique_products <- dt[, unique(upc)]
-  # cap the product limit to save time
-  if(length(unique_products) > n_product_limit) unique_products <- unique_products[1:n_product_limit] 
   dt <- dt[, upc_name := paste0('p', upc)] #rename upc to character for dcasting
   # label the experiment store-week according to the documentation
   dt[, is_expr_time := 
@@ -125,12 +127,25 @@ GetNpMix <- function(
   dt <- dt[week_start >= time_range_start & week_start <= time_range_end]
   # demean 
   dt[, formatted_price := price_format_function(price), by = .(zone, week, upc)]
+  # rank product by their non-uniform price weeks; some products have almost no price variation and is clearly not in 
+  # 
+  product_rank = dt[, mean(formatted_price != 0), by = upc
+                    ][order(-V1), .(disp_rank = 1:.N, upc)]
+  unique_products <- dt[, sum(formatted_price != 0), by = upc][order(-V1), upc]
+  # cap the product limit to save time
+  if(length(unique_products) > n_product_limit){
+    unique_products <- unique_products[1:n_product_limit] 
+    dt <- dt[upc %in% unique_products]
+  } 
+  # select a subset of products with enough price variation
+  # dt[, log_price := log(price)]
+  # dt[, price_d := log_price - mean(log_price), by = .(zone, week, upc)]
+  
   #-----
   dt_dcast <- dcast(dt, store + test + is_expr_time +
                       store_time_label + week + week_start ~ upc_name,
                     value.var = 'formatted_price')
   product_cols <- paste0('p', unique_products)
-  summary(dt_dcast)
   # initial guess
   mu0 <- matrix(rep(c(-0.05, 0, 0.05), length(product_cols)), nrow = 3)
   # run the nonparametric estimation
@@ -178,6 +193,7 @@ dt <- BasicCleaning(category_info)
 ##  Run the Estimation
 
 ```{r}
+set.seed(5)
 out <- GetNpMix(
   category_info, 
   dt                    = dt, 

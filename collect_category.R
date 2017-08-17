@@ -11,6 +11,7 @@ library(knitr)
 library(data.table)
 setwd(my_directory)
 # convert the up-to-date R markdown to R script
+file.remove("Dominicks_Experiment_Detection.R")
 purl('Dominicks_Experiment_Detection.Rmd', 
      output = "Dominicks_Experiment_Detection.R", documentation = 2)
 load('data/processed_info.RData')

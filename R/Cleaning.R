@@ -27,13 +27,15 @@ CleanMove <- function(move, week_table, category, price_expr,
   upc_summary <- upc_summary[order(-revenue)][, revenue_rank := 1:.N]
   upc_summary[, cum_coverage := cumsum(revenue)]
   upc_summary[, cum_coverage := cum_coverage/max(cum_coverage)]
-  upc_summary <- upc_summary[cum_coverage < .9]
-  move <- merge(move, upc_summary[, .(upc)], by = 'upc')
+  upc_summary <- upc_summary[cum_coverage < .9][, cum_coverage := NULL]
+  move <- move[upc %in% unique(upc_summary$upc)]
   move_summary <- move[, list(count = sum(move * qty, na.rm = TRUE)/CountUnique(store)),
                        by = upc]
   move_summary <- move_summary[order(-count)]
-  move <- merge(move, move_summary[, .(upc)], by = 'upc')
+  move <- move[upc %in% unique(move_summary$upc)]
   if(nrow(move) == 0) return(NULL)
+  # only include relevant zone to save memory
+  move <- move[store %in% unique(price_expr$store)]
   # generate a upc-store-week data data.table
   week_list <- intersect(unique(week_table$week), unique(move$week))
   store_list <- unique(move$store)
@@ -45,7 +47,7 @@ CleanMove <- function(move, week_table, category, price_expr,
   move <- merge(move, upc_store_week, by = c('upc', 'store', 'week'), all.y = TRUE)
   rm(upc_store_week)
   # exclude upc-week pair if all of its pirces are NA
-  move <- move[, count := sum(is.na(price))/.N, by = .(upc, week)][count < 1]
+  move <- move[, count := sum(is.na(price))/.N, by = .(upc, week)][count < 1][, count := NULL]
   move <- merge(price_expr[, .(store, zone)], move, by = 'store')
   # count the number of unique prices per upc-zone-week
   move[, tmp_key := .GRP, by = .(upc, zone, week)]
@@ -69,7 +71,7 @@ CleanMove <- function(move, week_table, category, price_expr,
            'zone_avg_price', 'zone_all_price') := NULL]
   # select upcs that have maximum number of weeks
   # TODO: check its filtering impact
-
+  
   move <- move[!is.na(price)]
   move[, is_outlier := IsOutlier(price), by = .(upc, store)]
   move <- move[is_outlier == FALSE][, is_outlier := NULL]
@@ -82,7 +84,7 @@ CleanMove <- function(move, week_table, category, price_expr,
     move <- move[, count := .N, by = week
                  ][count == max(count)][, count := NULL]
   }
-
+  
   VerboseWarning(nrow(move)/previous_row)
   move[is.na(move), move := 0]
   # merge week and holiday info
