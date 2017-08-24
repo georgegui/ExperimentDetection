@@ -1,0 +1,21 @@
+%latex.default(category_summary[, tp$col_var_names, with = FALSE],     cgroup = tp$cgroups, n.cgroup = tp$n_cgroups, rowname = tp$row_names,     rowlabel = " ", rgroup = tp$rgroup, colheads = tp$col_print_names,     file = tp$file_name, table.env = FALSE, extracolsize = "small",     col.just = tp$col_name_just, size = "small")%
+{\small
+\begin{center}
+\begin{tabular}{l|cc|cccc}
+\hline\hline
+\multicolumn{1}{c|}{}&\multicolumn{2}{c|}{Accuracy}&\multicolumn{4}{c}{Elasticity}\tabularnewline
+\hline
+\multicolumn{1}{c}{Category}&\multicolumn{1}{c}{All Data}&\multicolumn{1}{c}{Expriment Period}&\multicolumn{1}{c}{Documented}&\multicolumn{1}{c}{Predicted}&\multicolumn{1}{c}{OLS}&\multicolumn{1}{c}{OLS Week FE}\tabularnewline
+\hline
+Analgesics&$0.97$&$0.98$&$-0.20$&$-1.36$&$-0.44$&$-1.18$\tabularnewline
+Canned soups&$0.76$&$0.34$&$-0.21$&$-1.45$&$-1.12$&$-1.92$\tabularnewline
+Cereals-RTE&$0.96$&$0.93$&$-0.15$&$-2.13$&$-0.69$&$-2.60$\tabularnewline
+Cheese&$0.98$&$0.99$&$-0.25$&$-2.17$&$-0.88$&$-2.15$\tabularnewline
+Crackers-snack&$0.99$&$0.99$&$-0.20$&$-2.05$&$-0.04$&$-2.17$\tabularnewline
+Dish detergent&$0.85$&$0.68$&$-0.42$&$-2.77$&$-0.31$&$-3.13$\tabularnewline
+Front-end candy&$0.26$&$0.42$&$-0.15$&$-1.24$&$~0.02$&$-1.27$\tabularnewline
+Frozen entrees&$0.87$&$0.77$&$-0.82$&$-3.10$&$-0.70$&$-3.26$\tabularnewline
+Oral Care&$0.99$&$0.99$&$-0.43$&$-1.97$&$-0.86$&$-1.32$\tabularnewline
+Soft drinks&$0.82$&$0.63$&$-0.42$&$-2.58$&$-0.91$&$-2.64$\tabularnewline
+\hline
+\end{tabular}\end{center}}

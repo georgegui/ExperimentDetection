@@ -1,0 +1,22 @@
+digraph boxes_and_circles {
+  # a 'graph' statement
+  graph [layout = dot, fontsize = 10]
+  # several 'node' statements
+  node [shape = circle,
+        fontname = Helvetica, style = filled, colour = gray, width = 0.6]
+  
+  W1 [label = <W<SUB>1</SUB>>]
+  W2 [label = <W<SUB>2</SUB>>]
+  X [label = X]
+  Yr [label = <Y<SUB>R</SUB>>]
+  node [shape = circle,
+        fontname = Helvetica,
+        style = dotted, width = 0.6]
+  Uy [label = <U<SUB>Y</SUB>>]
+  Ux [label = <U<SUB>X</SUB>>]
+  subgraph {rank = same; X -> Yr}
+  subgraph {rank = same; W1; W2; X}
+  # edge
+  Ux->{W1, W2, X} Uy->Yr 
+
+}

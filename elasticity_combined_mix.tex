@@ -1,0 +1,22 @@
+%latex.default(category_summary[, tp$col_var_names, with = FALSE],     cgroup = tp$cgroups, n.cgroup = tp$n_cgroups, rowname = tp$row_names,     rowlabel = " ", rgroup = tp$rgroup, colheads = tp$col_print_names,     file = tp$file_name, table.env = FALSE, extracolsize = "small",     col.just = tp$col_name_just, size = "small")%
+{\small
+\begin{center}
+\begin{tabular}{l|cc|cc|ccc}
+\hline\hline
+\multicolumn{1}{l|}{ }&\multicolumn{2}{c|}{Accuracy}&\multicolumn{2}{c|}{Elasticity}&\multicolumn{3}{c}{Square Error}\tabularnewline
+\hline
+\multicolumn{1}{l|}{Category}&\multicolumn{1}{c}{All}&\multicolumn{1}{c|}{Experiment}&\multicolumn{1}{c}{Documented }&\multicolumn{1}{c|}{Predicted}&\multicolumn{1}{c}{Predicted}&\multicolumn{2}{c}{Random Guess}\tabularnewline
+\multicolumn{1}{c}{ }&\multicolumn{1}{c}{Data}&\multicolumn{1}{c}{Period}&\multicolumn{1}{c}{ }&\multicolumn{1}{c}{ }&\multicolumn{1}{c}{ }&\multicolumn{1}{c}{5th-quantile}&\multicolumn{1}{c}{Median}\tabularnewline
+\hline
+Analgesics&$0.97$&$0.98$&$-0.20$&$-1.36$&$0.94$&$0.82$&$0.95$\tabularnewline
+Canned soups&$0.76$&$0.34$&$-0.21$&$-1.45$&$2.93$&$2.54$&$2.94$\tabularnewline
+Cereals-RTE&$0.96$&$0.93$&$-0.15$&$-2.13$&$6.03$&$5.48$&$6.01$\tabularnewline
+Cheese&$0.98$&$0.99$&$-0.25$&$-2.17$&$3.62$&$3.26$&$3.61$\tabularnewline
+Crackers-snack&$0.99$&$0.99$&$-0.20$&$-2.05$&$3.89$&$3.77$&$3.90$\tabularnewline
+Dish detergent&$0.85$&$0.68$&$-0.42$&$-2.77$&$7.39$&$6.93$&$7.38$\tabularnewline
+Front-end candy&$0.26$&$0.42$&$-0.15$&$-1.24$&$1.23$&$1.15$&$1.23$\tabularnewline
+Frozen entrees&$0.87$&$0.77$&$-0.82$&$-3.10$&$5.94$&$5.64$&$5.94$\tabularnewline
+Oral Care&$0.99$&$0.99$&$-0.43$&$-1.97$&$0.83$&$0.66$&$0.83$\tabularnewline
+Soft drinks&$0.82$&$0.63$&$-0.42$&$-2.58$&$4.94$&$4.51$&$4.93$\tabularnewline
+\hline
+\end{tabular}\end{center}}
