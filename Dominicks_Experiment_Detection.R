@@ -2,12 +2,12 @@
 #' title: "R Notebook"
 #' output: html_notebook
 #' ---
-#' # Path and Library Setting 
+#' # Path and Library Setting
 ## ---- warning=FALSE, message=FALSE---------------------------------------
 library(CommonFunctions) #https://github.com/georgegui/CommonFunctions_Public
 
-package_list <- c('mixtools', 'gridExtra', 'lfe', 'matrixStats', 
-                  'RcppArmadillo', 'Hmisc', 'lfe', 'gridExtra', 
+package_list <- c('mixtools', 'gridExtra', 'lfe', 'matrixStats',
+                  'RcppArmadillo', 'Hmisc', 'lfe', 'gridExtra',
                   'data.table', 'mixtools', 'scales', 'stargazer', 'zoo')
 
 #matrixStats installed from source
@@ -26,27 +26,27 @@ file_list <- c('R/Cleaning.R',
 invisible(lapply(file_list, source))
 rm(file_list)
 
-#' 
+#'
 #' ## Category Experiment File
 ## ------------------------------------------------------------------------
 load('data/processed_info.RData')
 head(price_expr)
 
-#' 
+#'
 #' ### Load Preselected Products
 #' Load a list of preselected products that are likely to be in experiment as documented
 ## ------------------------------------------------------------------------
 product_list <- readRDS('data/preselected_products.RDS')
 
-#' 
-#' 
+#'
+#'
 #' ## Relevant Experiment with Documented Time
-#' 
+#'
 ## ------------------------------------------------------------------------
 relevant_cols <- c('store', 'zone', grep('test$', names(price_expr), value = TRUE))
 head(price_expr[, relevant_cols, with = FALSE])
 
-#' 
+#'
 #' # Global Variables
 #' The following variables will be global variables that used through out the code and inside various functions implicitly
 ## ------------------------------------------------------------------------
@@ -58,19 +58,19 @@ color_list <- c(color_list, 'darkred', 'darkred', color_list[[2]], 'darkgreen', 
 names(color_list) <- c('EDLP', 'Hi-Lo', 'Control', 'EDLP/S', 'EDLP2', 'Hi-Lo1', 'Hi-Lo2', 'EDLP1', 'Undocumented')
 COLOR_LIST <- color_list
 GG_COLOR <- scale_color_manual(values = COLOR_LIST)
-rm(list = c('price_expr', 'week_table', 'color_list'))
+rm(list = c('price_expr', 'color_list'))
 
-#' 
-#' 
+#'
+#'
 #' # Category Information
 ## ------------------------------------------------------------------------
 category_dt <- rbindlist(category_list)
-category_dt[, Documented_EDLP_Effect_neg := -Documented_EDLP_Effect] # adjust the documented EDLP to consistent sign. 
+category_dt[, Documented_EDLP_Effect_neg := -Documented_EDLP_Effect] # adjust the documented EDLP to consistent sign.
 category_dt[, c('Category', 'exp_2_start', 'exp_2_end'), with = FALSE]
 
-#' 
+#'
 #' # Nonparametric Mixture Estimation
-#' 
+#'
 #' ## Define function
 ## ------------------------------------------------------------------------
 SelectDispersedProducts <- function(dt,
@@ -122,10 +122,10 @@ PlotOriginalPrice <- function(dt, price_col = 'price'){
   return(gg)
 }
 
-PlotStoreFormattedPrice <- function(dt, store_week_prediction, 
+PlotStoreFormattedPrice <- function(dt, store_week_prediction,
                                     store_id = 2, plot_path = NULL){
-  dt <- merge(dt[store == store_id], 
-              store_week_prediction[, .(store, pred_label, week_start)], 
+  dt <- merge(dt[store == store_id],
+              store_week_prediction[, .(store, pred_label, week_start)],
               by = c('store', 'week_start'))
   dt_to_plot <- rbind(
     dt[store == store_id, .(price = mean(formatted_price)),
@@ -137,7 +137,7 @@ PlotStoreFormattedPrice <- function(dt, store_week_prediction,
   gg <- ggplot(dt_to_plot, aes(x = week_start, y = price, colour = store_time_label)) +
     geom_point() + facet_grid(type ~ .) +
     theme(legend.position = 'bottom') +
-    scale_color_manual("Documented/Predicted Label", values = COLOR_LIST) + 
+    scale_color_manual("Documented/Predicted Label", values = COLOR_LIST) +
     labs(x = 'Week Start', y = 'Demeaned Log Price')
   if(!is.null(plot_path)){
     png(file = paste0(plot_path, store_id, '.png'),
@@ -145,18 +145,18 @@ PlotStoreFormattedPrice <- function(dt, store_week_prediction,
     print(gg)
     dev.off()
   }
-  return(gg) 
+  return(gg)
 }
 
 GetNpMix <- function(
-  category_info, 
-  dt = NULL, 
-  selected_products = NULL, 
-  n_product_limit = 20, 
-  price_format_function = function(x) log(x) - mean(log(x)), 
-  time_range_start = "1992-01-01", # 
+  category_info,
+  dt = NULL,
+  selected_products = NULL,
+  n_product_limit = 20,
+  price_format_function = function(x) log(x) - mean(log(x)),
+  time_range_start = "1992-01-01", #
   time_range_end = "1993-12-31"
-  ){ 
+  ){
   if(is.null(dt)){
     dt <- BasicCleaning(category_info)
   } else {
@@ -165,19 +165,19 @@ GetNpMix <- function(
   dt[, week := paste0('t', week)] # rename numeric week columns to charcter for dcasting
   dt <- dt[, upc_name := paste0('p', upc)] #rename upc to character for dcasting
   # label the experiment store-week according to the documentation
-  dt[, is_expr_time := 
+  dt[, is_expr_time :=
        week_start >= category_info$exp_2_start &
-       week_start <= category_info$exp_2_end] 
+       week_start <= category_info$exp_2_end]
   # use store label(test) and time label to create store_time_label
   dt[, store_time_label := test]
   dt[is_expr_time == FALSE, store_time_label := 'Control']
   dt[week_start > category_info$exp_2_end, store_time_label := 'Undocumented']
   # select a subset of weeks
   dt <- dt[week_start >= time_range_start & week_start <= time_range_end]
-  # demean 
+  # demean
   dt[, formatted_price := price_format_function(price), by = .(zone, week, upc)]
-  # rank product by their non-uniform price weeks; some products have almost no price variation and is clearly not in 
-  # 
+  # rank product by their non-uniform price weeks; some products have almost no price variation and is clearly not in
+  #
   product_rank = dt[, mean(formatted_price != 0), by = upc
                     ][order(-V1), .(disp_rank = 1:.N, upc)]
   if(is.null(selected_products)){
@@ -188,13 +188,13 @@ GetNpMix <- function(
   if(length(selected_products) < 3) stop('not enough products')
   # cap the product limit to save time
   if(length(selected_products) > n_product_limit){
-    selected_products <- selected_products[1:n_product_limit] 
+    selected_products <- selected_products[1:n_product_limit]
     dt <- dt[upc %in% selected_products]
-  } 
+  }
   # select a subset of products with enough price variation
   # dt[, log_price := log(price)]
   # dt[, price_d := log_price - mean(log_price), by = .(zone, week, upc)]
-  
+
   #-----
   dt_dcast <- dcast(dt, store + test + is_expr_time +
                       store_time_label + week + week_start ~ upc_name,
@@ -228,33 +228,33 @@ GetNpMix <- function(
 }
 
 
-#' 
-#' 
+#'
+#'
 #' ## List of Well-Documented Category
 ## ------------------------------------------------------------------------
 category_dt <- category_dt[!is.na(exp_2_start)]
 category_dt[, .(Category)]
-    
 
-#' 
+
+#'
 #' ## Select a categry and load the movement data
 ## ------------------------------------------------------------------------
-if(!exists('cur_category')) cur_category = 'Analgesics'
+if(!exists('cur_category')) cur_category = 'Cheese'
 category_info <- category_dt[Category == cur_category]
 dt <- BasicCleaning(category_info)
 
-#' 
+#'
 #' ##  Run the Estimation
-#' 
+#'
 ## ------------------------------------------------------------------------
 set.seed(5)
 out <- GetNpMix(
-  category_info, 
-  dt                    = dt, 
+  category_info,
+  dt                    = dt,
   selected_products     = product_list[[cur_category]],
-  n_product_limit       = 20, 
-  price_format_function = function(x) log(x) - mean(log(x)), 
-  time_range_start      = "1992-01-01", # 
+  n_product_limit       = 20,
+  price_format_function = function(x) log(x) - mean(log(x)),
+  time_range_start      = "1992-01-01", #
   time_range_end        = "1993-12-31"
   )
 
@@ -262,22 +262,22 @@ out <- GetNpMix(
 ## ------------------------------------------------------------------------
 PlotOriginalPrice(out$formatted_dt)
 
-#' 
+#'
 #' ## Availabel stores
-#' 
+#'
 ## ------------------------------------------------------------------------
 store_list <- dt[, unique(store)]
 store_list
 
-#' 
+#'
 #' ## Pick a store and plot its prediction price
-#' 
+#'
 ## ------------------------------------------------------------------------
 PlotStoreFormattedPrice(out$formatted_dt, out$store_week_prediction, 5)
 
-#' 
+#'
 #' ## Estimate Elasticity
-#' 
+#'
 ## ------------------------------------------------------------------------
 if(!exists('INCLUDE_ZERO_QUANTITY')) INCLUDE_ZERO_QUANTITY = TRUE
 if(INCLUDE_ZERO_QUANTITY){
@@ -286,23 +286,23 @@ if(INCLUDE_ZERO_QUANTITY){
   quantity_func <- function(x) log(x)
 }
 
-#' 
-#' 
-#' 
+#'
+#'
+#'
 ## ------------------------------------------------------------------------
 source('summarize_result.R')
 
 
-#' 
+#'
 #' # Which elasticties to report?
-#' 
+#'
 ## ------------------------------------------------------------------------
 # comparison_table <- stargazer(
-#   model_all_basic, model_all_fe, model_all_fe_inter, model_expr_fe_inter, model_expr_fe_inter2, 
+#   model_all_basic, model_all_fe, model_all_fe_inter, model_expr_fe_inter, model_expr_fe_inter2,
 #   add.lines = list(
-#     c('All Data', rep('Yes', 3), rep('No', 2)), 
-#     c('Fixed Effect', 'No', rep('Yes', 4)), 
-#     c('Interaction', rep('No', 2), rep('Yes', 3)), 
+#     c('All Data', rep('Yes', 3), rep('No', 2)),
+#     c('Fixed Effect', 'No', rep('Yes', 4)),
+#     c('Interaction', rep('No', 2), rep('Yes', 3)),
 #     c('FE before Filteirng', rep('', 3), 'No', 'Yes')),
 #   type = 'text', omit.stat=c("f", "ser"))
 

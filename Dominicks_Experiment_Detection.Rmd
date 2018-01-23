@@ -58,7 +58,7 @@ color_list <- c(color_list, 'darkred', 'darkred', color_list[[2]], 'darkgreen', 
 names(color_list) <- c('EDLP', 'Hi-Lo', 'Control', 'EDLP/S', 'EDLP2', 'Hi-Lo1', 'Hi-Lo2', 'EDLP1', 'Undocumented')
 COLOR_LIST <- color_list
 GG_COLOR <- scale_color_manual(values = COLOR_LIST)
-rm(list = c('price_expr', 'week_table', 'color_list'))
+# rm(list = c('price_expr', 'color_list'))
 ```
 
 
@@ -153,7 +153,7 @@ GetNpMix <- function(
   dt = NULL, 
   selected_products = NULL, 
   n_product_limit = 20, 
-  price_format_function = function(x) log(x) - mean(log(x)), 
+  price_format_function = function(x) log(x + 1) - mean(log(x + 1)), 
   time_range_start = "1992-01-01", # 
   time_range_end = "1993-12-31"
   ){ 
@@ -253,7 +253,7 @@ out <- GetNpMix(
   dt                    = dt, 
   selected_products     = product_list[[cur_category]],
   n_product_limit       = 20, 
-  price_format_function = function(x) log(x) - mean(log(x)), 
+  price_format_function = function(x) log(x + 1) - mean(log(x + 1)), 
   time_range_start      = "1992-01-01", # 
   time_range_end        = "1993-12-31"
   )
